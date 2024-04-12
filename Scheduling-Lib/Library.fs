@@ -195,23 +195,25 @@ module Scheduler =
         //note Maybe minimize cross product? As it is a matrix?
     
         let retrieveSolutionValues (result: SolveResult) =
-            let getStrainValues solution minStrains =
-                [for strain in minStrains -> Objective.evaluate solution strain]
-
             match result with
             | Optimal solution ->
                 let values = Solution.getValues solution shouldWork |> SMap5.ofMap
     
                 let resultMatrix =
-                    [ for week = 0 to Schedule.Weeks.Length - 1 do
-                          [ for day = 0 to Schedule.Weeks.[week].Days.Length - 1 do
-                                [ for timeslot = 0 to Schedule.Weeks.[week].Days.[day].TimeSlots.Length - 1 do
-                                      [ for shift in Schedule.Weeks.[week].Days.[day].TimeSlots.[timeslot].Shifts do
-                                            [ let x = values.[All, week, day, timeslot, shift]
+                    [ 
+                        for week = 0 to Schedule.Weeks.Length - 1 do
+                        [ 
+                            for day = 0 to Schedule.Weeks.[week].Days.Length - 1 do
+                                [ 
+                                    for timeslot = 0 to Schedule.Weeks.[week].Days.[day].TimeSlots.Length - 1 do
+                                    [ for shift in Schedule.Weeks.[week].Days.[day].TimeSlots.[timeslot].Shifts do
+                                          [ 
+                                              let x = values.[All, week, day, timeslot, shift]
     
                                               for employee in workers do
                                                   if x.[employee] = 1.0<Shift> then
-                                                      yield employee.Name ] ] ] ] ]
+                                                      yield employee.Name 
+                    ] ] ] ] ]
     
                 { Result = resultMatrix
                   ObjectiveCost = Objective.evaluate solution minimizeCosts
