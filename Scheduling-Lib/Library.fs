@@ -74,7 +74,7 @@ type Solution = {
 }
 
 module Scheduler = 
-    let constructProblem (problem: Problem) =
+    let solve (problem: Problem) =
     
         // Helper variables to make the code more readable
         let workers = problem.Workers
