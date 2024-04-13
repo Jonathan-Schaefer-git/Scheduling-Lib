@@ -70,7 +70,7 @@ exception ModelError of string
 type Solution = {
     Result:string list list list list list
     ObjectiveCost:float<Euro>
-    ObjectiveStrain:float<Strain> list
+    ObjectiveStrain: (string * float<Strain>) list
 }
 
 module Scheduler = 
@@ -169,30 +169,20 @@ module Scheduler =
             }
     
         let minimizeStrain =
-            [ for employee in workers do
-                  for x = 0 to Schedule.Weeks.Length - 1 do
-                      for y = 0 to Schedule.Weeks.[x].Days.Length - 1 do
-                          for z = 0 to Schedule.Weeks.[x].Days.[y].TimeSlots.Length - 1 do
-                              for shift in Schedule.Weeks.[x].Days.[y].TimeSlots.[z].Shifts ->
-                                  shouldWork[employee, x, y, z, shift] * strainOfShifts.[x, y, z, shift]
-                                  |> Objective.create (sprintf ("Minimize Strain Target %s") (employee.Name)) Minimize
+            [ for employee in workers ->
+                sum (shouldWork[employee, All,All,All,All] .* strainOfShifts.[All,All,All,All])
+                |> Objective.create (sprintf ("Minimize Strain Target %s") (employee.Name)) Minimize
+                |> fun x -> (employee.Name,x) 
             ]
             
     
         let minimizeCosts =
-            [ for employee in workers do
-                  for x = 0 to Schedule.Weeks.Length - 1 do
-                      for y = 0 to Schedule.Weeks.[x].Days.Length - 1 do
-                          for z = 0 to Schedule.Weeks.[x].Days.[y].TimeSlots.Length - 1 do
-                              for shift in Schedule.Weeks.[x].Days.[y].TimeSlots.[z].Shifts ->
-                                  shouldWork.[employee, x, y, z, shift]
-                                  * shiftLength.[x, y, z, shift]
-                                  * workersWage.[employee] ]
+            [ for employee in workers ->
+                sum (shouldWork.[employee, All,All,All,All] .* shiftLength.[All,All,All,All]) * workersWage.[employee] 
+            ]
             |> List.sum
             |> Objective.create "Minimize Cost Target" Minimize
     
-    
-        //note Maybe minimize cross product? As it is a matrix?
     
         let retrieveSolutionValues (result: SolveResult) =
             match result with
@@ -217,7 +207,7 @@ module Scheduler =
     
                 { Result = resultMatrix
                   ObjectiveCost = Objective.evaluate solution minimizeCosts
-                  ObjectiveStrain = minimizeStrain |> List.map(fun strain -> Objective.evaluate solution strain) }
+                  ObjectiveStrain = minimizeStrain |> List.map(fun (name,strain) -> (name, Objective.evaluate solution strain)) }
             | _ ->
                 raise (ModelError "Model infeasible. Try again")
     
@@ -226,8 +216,10 @@ module Scheduler =
             let options = problem.Options
             
             let mutable model = Model.create minimizeCosts
-    
-            minimizeStrain |> List.iter(fun objec -> model <- (Model.addObjective objec model))
+            
+
+            if options.StrainMinimizing then
+                minimizeStrain |> List.iter(fun (name,objec) -> model <- (Model.addObjective objec model))
     
             if options.EnsureQualifiedPersonnelConstraint then
                 model <- Model.addConstraints qualifiedConstraints model

@@ -75,7 +75,6 @@ let testCase =
                         [ { Shifts = [ shifts.[0] ] }
                           { Shifts = [ shifts.[1] ] }
                           { Shifts = [ shifts.[2] ] }
-
                           ] }
                     { TimeSlots =
                         [ { Shifts = [ shifts.[0] ] }
@@ -99,9 +98,9 @@ let testCase =
       Options =
         {
           StrainMinimizing = false
-          MaximumWorkingHoursConstraint = false
-          EnsureQualifiedPersonnelConstraint = false
-          NoDoubleShiftConstraint = false
+          MaximumWorkingHoursConstraint = true
+          EnsureQualifiedPersonnelConstraint = true
+          NoDoubleShiftConstraint = true
           MinimumWorkingHoursConstraint = false } }
 
 
