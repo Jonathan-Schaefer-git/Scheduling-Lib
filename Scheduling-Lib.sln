@@ -5,8 +5,6 @@ VisualStudioVersion = 17.10.34804.81
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Scheduling-Lib", "Scheduling-Lib\Scheduling-Lib.fsproj", "{3F2F494C-4DEB-40E5-BF51-11D625741F23}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Scheduling-Lib.Tests", "Scheduling-Lib.Tests\Scheduling-Lib.Tests.fsproj", "{3B9DA861-08DB-4599-A818-D74ABD94767D}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,10 +15,6 @@ Global
 		{3F2F494C-4DEB-40E5-BF51-11D625741F23}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3F2F494C-4DEB-40E5-BF51-11D625741F23}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3F2F494C-4DEB-40E5-BF51-11D625741F23}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3B9DA861-08DB-4599-A818-D74ABD94767D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3B9DA861-08DB-4599-A818-D74ABD94767D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3B9DA861-08DB-4599-A818-D74ABD94767D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3B9DA861-08DB-4599-A818-D74ABD94767D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
