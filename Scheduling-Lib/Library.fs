@@ -5,6 +5,8 @@ open Flips.Types
 open Flips.SliceMap
 open Flips.UnitsOfMeasure
 open System.Diagnostics
+open System.Collections.Generic
+
 
 [<Measure>]
 type Euro
@@ -29,11 +31,6 @@ type Options =
       NoDoubleShiftConstraint: bool
       MaximumWorkingHoursConstraint: bool
       MinimumWorkingHoursConstraint: bool }
-
-//! Domain Model
-
-// Every day has a certain amount of time slots (default: 3) which can each contrain 0, 1 or more shifts which need to be staffed
-
 
 type Employee =
     { Name: string
@@ -68,23 +65,22 @@ type Problem =
 exception ModelError of string
 
 type Solution = {
-    Result:string list list list list list
+    Result:string seq seq seq seq seq
     ObjectiveCost:float<Euro>
-    ObjectiveStrain: (string * float<Strain>) list
+    ObjectiveStrain: (string * float<Strain>) seq
 }
 
 module Scheduler = 
     let solve (problem: Problem) =
     
-        // Helper variables to make the code more readable
         let workers = problem.Workers
         let Schedule = problem.Schedule
         let maxHoursPerWeek = problem.MaxHoursPerWeek
         let minHoursPerWeek = problem.MinHoursPerWeek
     
-        let workersWage = [ for record in workers -> record, record.Wage ] |> SMap.ofList
+        let workersWage = 
+            seq { for record in workers -> (record, record.Wage) } |> SMap.ofSeq
     
-        // Here are the shifts helpers defined
         let shiftLength =
             [ for x = 0 to Schedule.Weeks.Length - 1 do
                   for y = 0 to Schedule.Weeks.[x].Days.Length - 1 do
@@ -102,8 +98,6 @@ module Scheduler =
             |> SMap4.ofList
     
     
-        // Builds a binary matrix per worker of 3 shifts (as columns) and 7 Days (as Rows) for every employee
-        //! Decision
         let shouldWork =
             DecisionBuilder<Shift> "Has to work" {
                 for employee in workers do
@@ -117,9 +111,7 @@ module Scheduler =
     
         let containsAllElements list1 list2 =
             List.forall (fun elem -> List.contains elem list1) list2
-        //! Constraints
-    
-        // Ensures sufficient, qualified staffing
+
         let qualifiedConstraints =
             ConstraintBuilder "Ensure qualified personell and enough of workers of in shift" {
                 for x = 0 to Schedule.Weeks.Length - 1 do
@@ -140,7 +132,6 @@ module Scheduler =
                                     >== float (reqPersonnel.Count) * 1.0<Shift>
             }
     
-        // Maximum worktime per week
         let maxHoursConstraints =
             ConstraintBuilder "Maximum Constraint" {
                 for employee in workers do
@@ -159,7 +150,6 @@ module Scheduler =
                             >== minHoursPerWeek
             }
     
-        // No double shift on one day can be worked
         let noDoubleShiftConstraint =
             ConstraintBuilder "No Double Shift Constraint" {
                 for employee in workers do
@@ -169,11 +159,12 @@ module Scheduler =
             }
     
         let minimizeStrain =
-            [ for employee in workers ->
-                sum (shouldWork[employee, All,All,All,All] .* strainOfShifts.[All,All,All,All])
-                |> Objective.create (sprintf ("Minimize Strain Target %s") (employee.Name)) Minimize
-                |> fun x -> (employee.Name,x) 
-            ]
+            seq { 
+                for employee in workers ->
+                    sum (shouldWork[employee, All,All,All,All] .* strainOfShifts.[All,All,All,All])
+                    |> Objective.create (sprintf ("Minimize Strain Target %s") (employee.Name)) Minimize
+                    |> fun x -> (employee.Name,x) 
+            }
             
     
         let minimizeCosts =
@@ -190,26 +181,26 @@ module Scheduler =
                 let values = Solution.getValues solution shouldWork |> SMap5.ofMap
     
                 let resultMatrix =
-                    [ 
+                    seq {
                         for week = 0 to Schedule.Weeks.Length - 1 do
-                        [ 
+                        seq {
                             for day = 0 to Schedule.Weeks.[week].Days.Length - 1 do
-                                [ 
+                                seq{
                                     for timeslot = 0 to Schedule.Weeks.[week].Days.[day].TimeSlots.Length - 1 do
-                                    [ for shift in Schedule.Weeks.[week].Days.[day].TimeSlots.[timeslot].Shifts do
-                                          [ 
-                                              let x = values.[All, week, day, timeslot, shift]
-    
-                                              for employee in workers do
-                                                  if x.[employee] = 1.0<Shift> then
-                                                      yield employee.Name 
-                    ] ] ] ] ]
+                                    seq {
+                                        for shift in Schedule.Weeks.[week].Days.[day].TimeSlots.[timeslot].Shifts do
+                                            seq {
+                                                let x = values.[All, week, day, timeslot, shift]
+                                                for employee in workers do
+                                                    if x.[employee] = 1.0<Shift> then
+                                                        yield employee.Name 
+                    }}}}}
     
                 { Result = resultMatrix
                   ObjectiveCost = Objective.evaluate solution minimizeCosts
-                  ObjectiveStrain = minimizeStrain |> List.map(fun (name,strain) -> (name, Objective.evaluate solution strain)) }
+                  ObjectiveStrain = minimizeStrain |> Seq.map(fun (name,strain) -> (name, Objective.evaluate solution strain)) }
             | _ ->
-                raise (ModelError "Model infeasible. Try again")
+                raise (ModelError "Model infeasible. Try with different values ")
     
 
         let solved =
@@ -219,7 +210,7 @@ module Scheduler =
             
 
             if options.StrainMinimizing then
-                minimizeStrain |> List.iter(fun (name,objec) -> model <- (Model.addObjective objec model))
+                minimizeStrain |> Seq.iter(fun (_,objec) -> model <- (Model.addObjective objec model))
     
             if options.EnsureQualifiedPersonnelConstraint then
                 model <- Model.addConstraints qualifiedConstraints model
