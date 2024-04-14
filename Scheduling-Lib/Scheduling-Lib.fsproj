@@ -4,14 +4,40 @@
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>Scheduling_Lib</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Title>Scheduling-Lib</Title>
+    <Description>Scheduling Lib using Linear Programming and Flips library in F#</Description>
+    <Copyright>MIT License</Copyright>
+    <PackageProjectUrl></PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/Jonathan-Schaefer-git/Scheduling-Lib</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>linear-programming,ilp,milp,lp,scheduling</PackageTags>
+    <FileVersion>1.0.0.1</FileVersion>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="Library.fs" />
   </ItemGroup>
 
+	<ItemGroup>
+		<None Include="..\LICENSE">
+		  <Pack>True</Pack>
+		  <PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
+	
   <ItemGroup>
     <PackageReference Include="Flips" Version="2.4.9" />
+  </ItemGroup>
+	
+  <ItemGroup>
+    <None Update="LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
